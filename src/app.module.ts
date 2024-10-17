@@ -6,7 +6,7 @@ import { MoviesModule } from './movies/movies.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb+srv://gerardosalinas96:Qsc5EH8XEUHeTemL@cluster0.gvhad.mongodb.net/movieDB?retryWrites=true&w=majority&appName=Cluster0'),
+    MongooseModule.forRoot(process.env.MONGODB_URI),
     AuthModule,
     UsersModule,
     MoviesModule,
