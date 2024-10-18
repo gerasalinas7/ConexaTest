@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -20,18 +21,20 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user._id, role: user.role };
+    const validatedUser = await this.validateUser(user.email, user.password);
+  
+    if (!validatedUser) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const payload = { 
+      email: validatedUser._doc.email, 
+      sub: validatedUser._doc._id, 
+      role: validatedUser._doc.role 
+    };
+  
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async register(userDto: any) {
-    const hashedPassword = await bcrypt.hash(userDto.password, 10);
-    const newUser = await this.usersService.create({
-      ...userDto,
-      password: hashedPassword,
-    });
-    return newUser;
-  }
 }
