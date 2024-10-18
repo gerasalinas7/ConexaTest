@@ -1,86 +1,205 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Aplicación de Gestión de Películas de Star Wars
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este proyecto es una API backend construida con NestJS que permite gestionar una base de datos de películas de Star Wars. La API ofrece funcionalidades para autenticación de usuarios, operaciones CRUD de películas e integración con la API de Star Wars para sincronización de películas.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 👀 Descripción del Proyecto
 
-## Description
+Esta aplicación está diseñada para gestionar una colección de películas con autenticación y autorización basada en roles. Existen diferentes roles para los usuarios, como **Usuarios Regulares** y **Administradores**, con distintos permisos para acceder y gestionar películas.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Principales Características:
 
-## Project setup
+1. **Autenticación y Autorización**: 
+   - Los usuarios pueden registrarse e iniciar sesión utilizando autenticación basada en JWT.
+   - Los roles de autorización (Admin, Regular) restringen el acceso a ciertas operaciones, como crear, actualizar o eliminar películas.
+  
+2. **Gestión de Usuarios**:
+   - Los usuarios pueden registrarse e iniciar sesión.
+   - Almacenamiento seguro de contraseñas y validación.
 
-```bash
-$ npm install
+3. **Gestión de Películas**:
+   - Los usuarios regulares pueden listar y ver detalles de las películas.
+   - Los administradores pueden crear, actualizar y eliminar películas.
+   - Los datos de películas se pueden sincronizar con la API de Star Wars.
+
+4. **Documentación de API con Swagger**: 
+   - La API está documentada con Swagger para facilitar la interacción.
+
+---
+
+## 🚀 Instalación
+
+1. Clona el repositorio:
+
+   ```bash
+   git clone <repository-url>
+   ```
+
+2. Instala las dependencias:
+
+   ```bash
+   cd <project-folder>
+   npm install
+   ```
+
+3. Configura las variables de entorno creando un archivo `.env`:
+
+   ```bash
+   JWT_SECRET=<tu-secreto-jwt>
+   JWT_EXPIRES_IN=<expiracion-jwt>
+   MONGODB_URI=<tu-url-de-mongodb>
+   ```
+
+4. Inicia la aplicación:
+
+   ```bash
+   npm run start
+   ```
+
+---
+
+## 🔑 Autenticación y Autorización
+
+La aplicación utiliza **JWT** (JSON Web Tokens) para autenticación segura. Cada usuario tiene un rol específico:
+
+- **Admin**: Puede crear, actualizar y eliminar películas.
+- **Usuario Regular**: Puede ver películas, pero no puede realizar tareas administrativas.
+
+Para usar la API, primero debes registrar un usuario e iniciar sesión para obtener un token JWT. Este token debe ser incluido en el encabezado `Authorization` de cada solicitud a los endpoints protegidos.
+
+---
+
+## 👥 Gestión de Usuarios
+
+### Registrar un Nuevo Usuario (Sign-Up)
+
+**Endpoint**: `/users/register`  
+**Método**: `POST`  
+**Descripción**: Permite registrar a un nuevo usuario.
+
+**Cuerpo de la Solicitud**:
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseñasegura",
+  "name": "John Doe"
+}
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+### Iniciar Sesión
 
-# watch mode
-$ npm run start:dev
+**Endpoint**: `/auth/login`  
+**Método**: `POST`  
+**Descripción**: Inicia sesión de un usuario y devuelve un token JWT.
 
-# production mode
-$ npm run start:prod
+**Cuerpo de la Solicitud**:
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseñasegura"
+}
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+**Respuesta**:
+```json
+{
+  "access_token": "<tu-token-jwt>"
+}
 ```
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## 🤖 Endpoints de la API
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Listar Todas las Películas
 
-## Support
+**Endpoint**: `/movies`  
+**Método**: `GET`  
+**Descripción**: Devuelve una lista de todas las películas. Accesible para todos los usuarios.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+### Obtener Película por ID
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Endpoint**: `/movies/:id`  
+**Método**: `GET`  
+**Descripción**: Obtiene los detalles de una película específica por su ID.  
+**Autorización**: Requiere rol de "Usuario Regular" o "Admin".
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Crear una Nueva Película
+
+**Endpoint**: `/movies`  
+**Método**: `POST`  
+**Descripción**: Crea una nueva película.  
+**Autorización**: Requiere rol de "Admin".
+
+**Cuerpo de la Solicitud**:
+```json
+{
+  "title": "Nueva Película",
+  "director": "Nombre del Director",
+  "releaseDate": "2024-10-18",
+  "description": "Descripción de la película",
+  "genres": ["Acción", "Aventura"]
+}
+```
+
+---
+
+### Actualizar Película
+
+**Endpoint**: `/movies/:id`  
+**Método**: `PATCH`  
+**Descripción**: Actualiza los detalles de una película existente.  
+**Autorización**: Requiere rol de "Admin".
+
+**Cuerpo de la Solicitud**:
+```json
+{
+  "title": "Nuevo Título de Película",
+  "description": "Nueva descripción",
+  "genres": ["Acción", "Drama"]
+}
+```
+
+---
+
+### Eliminar Película
+
+**Endpoint**: `/movies/:id`  
+**Método**: `DELETE`  
+**Descripción**: Elimina una película por su ID.  
+**Autorización**: Requiere rol de "Admin".
+
+---
+
+### Sincronizar Películas de Star Wars
+
+**Endpoint**: `/movies/sync-star-wars`  
+**Método**: `POST`  
+**Descripción**: Sincroniza las películas de la API de Star Wars y las almacena en la base de datos.  
+**Autorización**: Requiere rol de "Admin".
+
+---
+
+## 💡 Pruebas Unitarias
+
+Para garantizar el correcto funcionamiento de la API, se escribieron pruebas unitarias que verifican:
+
+- El correcto registro de usuarios.
+- La autenticación con JWT.
+- Las restricciones de acceso basadas en roles.
+- Las operaciones CRUD en las películas.
+
+---
+
+## 🤝 Documentación con Swagger
+
+La API está documentada usando **Swagger**. Para acceder a la documentación completa, una vez que la aplicación esté en funcionamiento, navega a:
+
+- `http://localhost:3000/api-docs`
+
+Allí, puedes visualizar y probar todos los endpoints disponibles.
