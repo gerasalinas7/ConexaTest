@@ -7,7 +7,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Movie Management API')
-    .setDescription('API para gestionar películas')
+    .setDescription('API para gestionar películas de Star Wars')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
