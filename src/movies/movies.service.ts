@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Movie, MovieDocument } from './schemas/movie.schema';
 import axios from 'axios';
 import { slugify } from '../shared/slugify';
+import { CreateMovieDto } from './dto/create-movie.dto';
+import { UpdateMovieDto } from './dto/update-movie.dto';
 
 @Injectable()
 export class MoviesService {
@@ -21,16 +23,27 @@ export class MoviesService {
     return movie;
   }
 
-  async create(movieDto: any): Promise<Movie> {
-    const newMovie = new this.movieModel(movieDto);
+  async create(createMovieDto: CreateMovieDto): Promise<Movie> {
+    const slug = slugify(createMovieDto.title);
+    const newMovie = new this.movieModel({ ...createMovieDto, slug });
     return newMovie.save();
   }
 
-  async update(id: string, updateDto: any): Promise<Movie> {
-    const updatedMovie = await this.movieModel.findByIdAndUpdate(id, updateDto, { new: true }).exec();
+  async update(id: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
+    if (updateMovieDto.title) {
+      updateMovieDto = { ...updateMovieDto, slug: slugify(updateMovieDto.title) };
+    }
+  
+    const updatedMovie = await this.movieModel.findByIdAndUpdate(
+      id, 
+      updateMovieDto, 
+      { new: true },
+    ).exec();
+  
     if (!updatedMovie) {
       throw new NotFoundException(`Movie with ID ${id} not found`);
     }
+  
     return updatedMovie;
   }
 
@@ -68,8 +81,6 @@ export class MoviesService {
     }));
 
     return resultMovies;
-}
-
-
+  }
 
 }
