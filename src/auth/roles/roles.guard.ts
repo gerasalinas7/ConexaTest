@@ -19,7 +19,12 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No token found');
     }
 
-    const user = this.jwtService.decode(token) as any;
+    let user;
+    try {
+      user = this.jwtService.verify(token); 
+    } catch (error) {
+      throw new ForbiddenException('Invalid token');
+    }
     
     if (user.role !== requiredRole) {
       throw new ForbiddenException('You do not have the required permissions');

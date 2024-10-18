@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Movie, MovieDocument } from './schemas/movie.schema/movie.schema';
+import { Movie, MovieDocument } from './schemas/movie.schema';
 import axios from 'axios';
 import { slugify } from '../shared/slugify';
 

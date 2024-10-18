@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MoviesService } from './movies.service';
 import { MoviesController } from './movies.controller';
-import { Movie, MovieSchema } from './schemas/movie.schema/movie.schema';
+import { Movie, MovieSchema } from './schemas/movie.schema';
 import { RolesGuard } from '../auth/roles/roles.guard';
 import { AuthModule } from '../auth/auth.module';
 @Module({
