@@ -122,9 +122,9 @@ Para usar la API, primero debes registrar un usuario e iniciar sesión para obte
 
 ### Obtener Película por ID
 
-**Endpoint**: `/movies/:id`  
+**Endpoint**: `/movies/:slug`  
 **Método**: `GET`  
-**Descripción**: Obtiene los detalles de una película específica por su ID.  
+**Descripción**: Obtiene los detalles de una película específica por su slug.  
 **Autorización**: Requiere rol de "Usuario Regular" o "Admin".
 
 ---
@@ -151,7 +151,7 @@ Para usar la API, primero debes registrar un usuario e iniciar sesión para obte
 
 ### Actualizar Película
 
-**Endpoint**: `/movies/:id`  
+**Endpoint**: `/movies/:slug`  
 **Método**: `PATCH`  
 **Descripción**: Actualiza los detalles de una película existente.  
 **Autorización**: Requiere rol de "Admin".
@@ -169,7 +169,7 @@ Para usar la API, primero debes registrar un usuario e iniciar sesión para obte
 
 ### Eliminar Película
 
-**Endpoint**: `/movies/:id`  
+**Endpoint**: `/movies/:slug`  
 **Método**: `DELETE`  
 **Descripción**: Elimina una película por su ID.  
 **Autorización**: Requiere rol de "Admin".

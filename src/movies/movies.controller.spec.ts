@@ -3,20 +3,28 @@ import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { Movie } from './schemas/movie.schema';
+import { NotFoundException } from '@nestjs/common';
+
+const mockMovie = {
+  title: 'Star Wars: A New Hope',
+  director: 'George Lucas',
+  releaseDate: new Date('1977-05-25'),
+  description: 'The first Star Wars movie.',
+  genres: ['Sci-Fi'],
+  slug: 'star-wars-a-new-hope',
+};
+
+const mockMoviesService = {
+  findAll: jest.fn(),
+  findOneBySlug: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+  syncStarWarsMovies: jest.fn(),
+};
 
 describe('MoviesController', () => {
-  let moviesController: MoviesController;
-  let moviesService: MoviesService;
-
-  const mockMoviesService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-    syncStarWarsMovies: jest.fn(),
-  };
+  let controller: MoviesController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,105 +37,97 @@ describe('MoviesController', () => {
       ],
     }).compile();
 
-    moviesController = module.get<MoviesController>(MoviesController);
-    moviesService = module.get<MoviesService>(MoviesService);
+    controller = module.get<MoviesController>(MoviesController);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
   describe('findAll', () => {
     it('should return an array of movies', async () => {
-      const result: Movie[] = [
-        { 
-          title: 'A New Hope', 
-          director: 'George Lucas', 
-          releaseDate: new Date('1977-05-25'), 
-          genres: ['Sci-Fi'], 
-          slug: 'a-new-hope' // Incluyendo slug aquí
-        },
-      ];
-      mockMoviesService.findAll.mockResolvedValue(result);
+      mockMoviesService.findAll.mockResolvedValue([mockMovie]);
 
-      expect(await moviesController.findAll()).toBe(result);
-      expect(moviesService.findAll).toHaveBeenCalled();
+      const movies = await controller.findAll();
+      expect(movies).toEqual([mockMovie]);
     });
   });
 
   describe('findOne', () => {
-    it('should return a single movie', async () => {
-      const result: Movie = { 
-        title: 'A New Hope', 
-        director: 'George Lucas', 
-        releaseDate: new Date('1977-05-25'), 
-        genres: ['Sci-Fi'], 
-        slug: 'a-new-hope' // Incluyendo slug aquí
-      };
-      mockMoviesService.findOne.mockResolvedValue(result);
+    it('should return a movie by slug', async () => {
+      mockMoviesService.findOneBySlug.mockResolvedValue(mockMovie);
 
-      expect(await moviesController.findOne('1')).toBe(result);
-      expect(moviesService.findOne).toHaveBeenCalledWith('1');
+      const movie = await controller.findOne(mockMovie.slug);
+      expect(movie).toEqual(mockMovie);
+    });
+
+    it('should throw a NotFoundException if movie not found', async () => {
+      mockMoviesService.findOneBySlug.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.findOne('invalid-slug')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('create', () => {
     it('should create a new movie', async () => {
-      const createMovieDto: CreateMovieDto = { 
-        title: 'A New Hope', 
-        director: 'George Lucas', 
-        releaseDate: new Date('1977-05-25'), 
-        genres: ['Sci-Fi'] 
-      };
-      const result: Movie = { 
-        ...createMovieDto, 
-        slug: 'a-new-hope', // Asegúrate de incluir slug aquí también
-        // _id: '1' 
-      };
-      mockMoviesService.create.mockResolvedValue(result);
+      mockMoviesService.create.mockResolvedValue(mockMovie);
 
-      expect(await moviesController.create(createMovieDto)).toBe(result);
-      expect(moviesService.create).toHaveBeenCalledWith(createMovieDto);
+      const createMovieDto: CreateMovieDto = {
+        title: mockMovie.title,
+        director: mockMovie.director,
+        releaseDate: mockMovie.releaseDate,
+        description: mockMovie.description,
+        genres: mockMovie.genres,
+      };
+
+      const movie = await controller.create(createMovieDto);
+      expect(movie).toEqual(mockMovie);
     });
   });
 
   describe('update', () => {
-    it('should update an existing movie', async () => {
-      const updateMovieDto: UpdateMovieDto = { title: 'A New Hope - Remastered' };
-      const result: Movie = { 
-        title: 'A New Hope - Remastered', 
-        director: 'George Lucas', 
-        releaseDate: new Date('1977-05-25'), 
-        genres: ['Sci-Fi'], 
-        slug: 'a-new-hope' // Asegúrate de que la propiedad slug esté presente
-      };
-      mockMoviesService.update.mockResolvedValue(result);
+    it('should update a movie by slug', async () => {
+      mockMoviesService.update.mockResolvedValue(mockMovie);
 
-      expect(await moviesController.update('1', updateMovieDto)).toBe(result);
-      expect(moviesService.update).toHaveBeenCalledWith('1', updateMovieDto);
+      const updateMovieDto: UpdateMovieDto = {
+        title: 'Updated Title',
+      };
+
+      const movie = await controller.update(mockMovie.slug, updateMovieDto);
+      expect(movie).toEqual(mockMovie);
+    });
+
+    it('should throw a NotFoundException if movie not found', async () => {
+      mockMoviesService.update.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.update(mockMovie.slug, {})).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
-    it('should delete a movie', async () => {
+    it('should delete a movie by slug', async () => {
       mockMoviesService.remove.mockResolvedValue(undefined);
 
-      await moviesController.remove('1');
-      expect(moviesService.remove).toHaveBeenCalledWith('1');
+      await controller.remove(mockMovie.slug);
+      expect(mockMoviesService.remove).toHaveBeenCalledWith(mockMovie.slug);
+    });
+
+    it('should throw a NotFoundException if movie not found', async () => {
+      mockMoviesService.remove.mockRejectedValue(new NotFoundException());
+        await expect(controller.remove(mockMovie.slug)).rejects.toThrow(NotFoundException);
+      });
+    });
+  
+    describe('syncStarWarsMovies', () => {
+      it('should sync Star Wars movies successfully', async () => {
+        mockMoviesService.syncStarWarsMovies.mockResolvedValue([mockMovie]);
+  
+        const movies = await controller.syncStarWarsMovies();
+        expect(movies).toEqual([mockMovie]);
+      });
     });
   });
-
-  describe('syncStarWarsMovies', () => {
-    it('should synchronize Star Wars movies', async () => {
-      const result: Movie[] = [
-        { 
-          title: 'A New Hope', 
-          director: 'George Lucas', 
-          releaseDate: new Date('1977-05-25'), 
-          genres: ['Sci-Fi'], 
-          slug: 'a-new-hope' // Asegúrate de que slug esté presente
-        },
-      ];
-      mockMoviesService.syncStarWarsMovies.mockResolvedValue(result);
-
-      expect(await moviesController.syncStarWarsMovies()).toBe(result);
-      expect(moviesService.syncStarWarsMovies).toHaveBeenCalled();
-    });
-  });
-});

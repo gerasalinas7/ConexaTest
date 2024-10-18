@@ -15,10 +15,10 @@ export class MoviesService {
     return this.movieModel.find().exec();
   }
 
-  async findOne(id: string): Promise<Movie> {
-    const movie = await this.movieModel.findById(id).exec();
+  async findOneBySlug(slug: string): Promise<Movie> {
+    const movie = await this.movieModel.findOne({ slug }).exec();
     if (!movie) {
-      throw new NotFoundException(`Movie with ID ${id} not found`);
+      throw new NotFoundException(`Movie with slug ${slug} not found`);
     }
     return movie;
   }
@@ -29,28 +29,28 @@ export class MoviesService {
     return newMovie.save();
   }
 
-  async update(id: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
+  async update(slug: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
     if (updateMovieDto.title) {
       updateMovieDto = { ...updateMovieDto, slug: slugify(updateMovieDto.title) };
     }
-  
-    const updatedMovie = await this.movieModel.findByIdAndUpdate(
-      id, 
-      updateMovieDto, 
+
+    const updatedMovie = await this.movieModel.findOneAndUpdate(
+      { slug },
+      updateMovieDto,
       { new: true },
     ).exec();
-  
+
     if (!updatedMovie) {
-      throw new NotFoundException(`Movie with ID ${id} not found`);
+      throw new NotFoundException(`Movie with slug ${slug} not found`);
     }
-  
+
     return updatedMovie;
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.movieModel.findByIdAndDelete(id).exec();
+  async remove(slug: string): Promise<void> {
+    const result = await this.movieModel.findOneAndDelete({ slug }).exec();
     if (!result) {
-      throw new NotFoundException(`Movie with ID ${id} not found`);
+      throw new NotFoundException(`Movie with slug ${slug} not found`);
     }
   }
 

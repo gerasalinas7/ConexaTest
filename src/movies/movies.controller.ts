@@ -17,13 +17,13 @@ export class MoviesController {
     return this.moviesService.findAll();
   }
 
-  @Get(':id')
+  @Get(':slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Role('regular')
-  @ApiResponse({ status: 200, description: 'Retrieve a movie by its ID.' })
+  @ApiResponse({ status: 200, description: 'Retrieve a movie by its slug.' })
   @ApiResponse({ status: 404, description: 'Movie not found.' })
-  findOne(@Param('id') id: string) {
-    return this.moviesService.findOne(id);
+  findOne(@Param('slug') slug: string) {
+    return this.moviesService.findOneBySlug(slug);
   }
 
   @Post()
@@ -35,21 +35,21 @@ export class MoviesController {
     return this.moviesService.create(createMovieDto);
   }
 
-  @Put(':id')
+  @Put(':slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Role('admin')
   @ApiBody({ type: UpdateMovieDto })
   @ApiResponse({ status: 200, description: 'Movie successfully updated.' })
-  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.moviesService.update(id, updateMovieDto);
+  update(@Param('slug') slug: string, @Body() updateMovieDto: UpdateMovieDto) {
+    return this.moviesService.update(slug, updateMovieDto);
   }
 
-  @Delete(':id')
+  @Delete(':slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Role('admin')
   @ApiResponse({ status: 200, description: 'Movie successfully deleted.' })
-  remove(@Param('id') id: string) {
-    return this.moviesService.remove(id);
+  remove(@Param('slug') slug: string) {
+    return this.moviesService.remove(slug);
   }
 
   @Post('sync-star-wars')

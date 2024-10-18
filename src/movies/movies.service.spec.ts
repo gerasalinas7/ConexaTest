@@ -3,23 +3,39 @@ import { MoviesService } from './movies.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Movie } from './schemas/movie.schema';
 import { NotFoundException } from '@nestjs/common';
+import { slugify } from '../shared/slugify';
 import axios from 'axios';
-import { CreateMovieDto } from './dto/create-movie.dto';
 
-const mockMovieModel = {
-  find: jest.fn(),
-  findById: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  findByIdAndDelete: jest.fn(),
-  save: jest.fn(),
-  insertMany: jest.fn(),
+const mockMovie = {
+  title: 'Star Wars: A New Hope',
+  director: 'George Lucas',
+  releaseDate: new Date('1977-05-25'),
+  description: 'A long time ago in a galaxy far, far away...',
+  genres: ['Sci-Fi'],
+  slug: 'star-wars-a-new-hope',
 };
 
-jest.mock('axios');
+const mockMoviesArray = [mockMovie];
+
+const mockMovieModel = {
+  find: jest.fn().mockReturnValue({
+    exec: jest.fn().mockResolvedValue(mockMoviesArray),
+  }),
+  findOne: jest.fn().mockReturnValue({
+    exec: jest.fn().mockResolvedValue(mockMovie),
+  }),
+  findOneAndUpdate: jest.fn().mockReturnValue({
+    exec: jest.fn().mockResolvedValue(mockMovie),
+  }),
+  findOneAndDelete: jest.fn().mockReturnValue({
+    exec: jest.fn().mockResolvedValue(mockMovie),
+  }),
+  create: jest.fn().mockResolvedValue(mockMovie),
+  insertMany: jest.fn().mockResolvedValue(mockMoviesArray),
+};
 
 describe('MoviesService', () => {
-  let moviesService: MoviesService;
-  let movieModel;
+  let service: MoviesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,108 +48,97 @@ describe('MoviesService', () => {
       ],
     }).compile();
 
-    moviesService = module.get<MoviesService>(MoviesService);
-    movieModel = module.get(getModelToken(Movie.name));
+    service = module.get<MoviesService>(MoviesService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
   describe('findAll', () => {
-    it('debería retornar una lista de películas', async () => {
-      const movieArray = [{ title: 'Movie 1' }, { title: 'Movie 2' }];
-      movieModel.find.mockResolvedValue(movieArray);
-
-      const result = await moviesService.findAll();
-      expect(result).toEqual(movieArray);
-      expect(movieModel.find).toHaveBeenCalled();
+    it('should return an array of movies', async () => {
+      const result = await service.findAll();
+      expect(result).toEqual(mockMoviesArray);
+      expect(mockMovieModel.find).toHaveBeenCalled();
     });
   });
 
-  describe('findOne', () => {
-    it('debería retornar una película por ID', async () => {
-      const movie = { title: 'Movie 1' };
-      movieModel.findById.mockResolvedValue(movie);
-
-      const result = await moviesService.findOne('123');
-      expect(result).toEqual(movie);
-      expect(movieModel.findById).toHaveBeenCalledWith('123');
+  describe('findOneBySlug', () => {
+    it('should return a movie if found', async () => {
+      const result = await service.findOneBySlug(mockMovie.slug);
+      expect(result).toEqual(mockMovie);
+      expect(mockMovieModel.findOne).toHaveBeenCalledWith({ slug: mockMovie.slug });
     });
 
-    it('debería lanzar NotFoundException si la película no existe', async () => {
-      movieModel.findById.mockResolvedValue(null);
+    it('should throw NotFoundException if movie not found', async () => {
+      mockMovieModel.findOne.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
-      await expect(moviesService.findOne('123')).rejects.toThrow(NotFoundException);
+      await expect(service.findOneBySlug('invalid-slug')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('create', () => {
-    it('debería crear y retornar una nueva película', async () => {
-      const createMovieDto: CreateMovieDto = {
-        title: 'New Movie',
-        director: 'Director Name',
-        releaseDate: new Date('2023-01-01'),
-        genres: ['Action', 'Adventure'], 
+    it('should create a movie and return it', async () => {
+      const createMovieDto = {
+        title: 'Star Wars: A New Hope',
+        director: 'George Lucas',
+        releaseDate: new Date('1977-05-25'),
+        description: 'A long time ago in a galaxy far, far away...',
+        genres: ['Sci-Fi'],
       };
-      
-      const savedMovie = { ...createMovieDto, slug: 'new-movie' };
-      movieModel.save.mockResolvedValue(savedMovie);
-  
-      const result = await moviesService.create(createMovieDto);
-      expect(result).toEqual(savedMovie);
-      expect(movieModel.save).toHaveBeenCalled();
+
+      const result = await service.create(createMovieDto);
+      expect(result).toEqual(mockMovie);
+      expect(mockMovieModel.create).toHaveBeenCalledWith({ ...createMovieDto, slug: slugify(createMovieDto.title) });
     });
   });
 
   describe('update', () => {
-    it('debería actualizar y retornar la película existente', async () => {
-      const updateMovieDto = { title: 'Updated Movie' };
-      const updatedMovie = { ...updateMovieDto, slug: 'updated-movie' };
-      movieModel.findByIdAndUpdate.mockResolvedValue(updatedMovie);
+    it('should update a movie and return it', async () => {
+      const updateMovieDto = { title: 'Star Wars: A New Hope - Special Edition' };
 
-      const result = await moviesService.update('123', updateMovieDto);
-      expect(result).toEqual(updatedMovie);
-      expect(movieModel.findByIdAndUpdate).toHaveBeenCalledWith('123', expect.anything(), { new: true });
+      const result = await service.update(mockMovie.slug, updateMovieDto);
+      expect(result).toEqual(mockMovie);
+      expect(mockMovieModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { slug: mockMovie.slug },
+        { ...updateMovieDto, slug: slugify(updateMovieDto.title) },
+        { new: true },
+      );
     });
 
-    it('debería lanzar NotFoundException si la película no existe', async () => {
-      movieModel.findByIdAndUpdate.mockResolvedValue(null);
+    it('should throw NotFoundException if movie not found', async () => {
+      mockMovieModel.findOneAndUpdate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
-      await expect(moviesService.update('123', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update(mockMovie.slug, { title: 'Invalid' })).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
-    it('debería eliminar una película', async () => {
-      movieModel.findByIdAndDelete.mockResolvedValue({ title: 'Movie to delete' });
-
-      await moviesService.remove('123');
-      expect(movieModel.findByIdAndDelete).toHaveBeenCalledWith('123');
+    it('should remove a movie', async () => {
+      await service.remove(mockMovie.slug);
+      expect(mockMovieModel.findOneAndDelete).toHaveBeenCalledWith({ slug: mockMovie.slug });
     });
 
-    it('debería lanzar NotFoundException si la película no existe', async () => {
-      movieModel.findByIdAndDelete.mockResolvedValue(null);
+    it('should throw NotFoundException if movie not found', async () => {
+      mockMovieModel.findOneAndDelete.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
-      await expect(moviesService.remove('123')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('invalid-slug')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('syncStarWarsMovies', () => {
-    it('debería sincronizar películas de Star Wars y retornar las nuevas películas', async () => {
-      const swMovies = [
-        { title: 'A New Hope', director: 'George Lucas', release_date: '1977-05-25', opening_crawl: 'In a galaxy far, far away...' },
-      ];
-      
-      (axios.get as jest.Mock).mockResolvedValue({ data: { results: swMovies } });
+    it('should synchronize movies from Star Wars API', async () => {
+      jest.spyOn(axios, 'get').mockResolvedValue({ data: { results: [mockMovie] } });
 
-      const newMovies = [{ ...swMovies[0], slug: 'a-new-hope', genres: ['Sci-Fi'] }];
-      (movieModel.insertMany as jest.Mock).mockResolvedValue(newMovies);
-
-      const result = await moviesService.syncStarWarsMovies();
-      expect(result).toEqual(newMovies);
-      expect(axios.get).toHaveBeenCalledWith('https://swapi.dev/api/films/');
-      expect(movieModel.insertMany).toHaveBeenCalledWith(newMovies);
+      const result = await service.syncStarWarsMovies();
+      expect(result).toEqual(mockMoviesArray);
+      expect(mockMovieModel.insertMany).toHaveBeenCalledWith([mockMovie]);
     });
   });
 });
