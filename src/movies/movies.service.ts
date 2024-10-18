@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Movie, MovieDocument } from './schemas/movie.schema/movie.schema';
 import axios from 'axios';
+import { slugify } from '../shared/slugify';
 
 @Injectable()
 export class MoviesService {
@@ -48,10 +49,27 @@ export class MoviesService {
         releaseDate: film.release_date,
         description: film.opening_crawl,
         genres: ['Sci-Fi'],
+        slug: slugify(film.title),
     }));
+
+    const existingMovies = await this.movieModel.find({ slug: { $in: movies.map(movie => movie.slug) } });
+    const existingSlugs = existingMovies.map(movie => movie.slug);
+    const newMovies = movies.filter(movie => !existingSlugs.includes(movie.slug));
+
+    const savedMovies = await this.movieModel.insertMany(newMovies);
     
-    await this.movieModel.insertMany(movies);
-    return movies;
-  }
+    const resultMovies = savedMovies.map(savedMovie => ({
+        title: savedMovie.title,
+        director: savedMovie.director,
+        releaseDate: savedMovie.releaseDate,
+        description: savedMovie.description,
+        genres: savedMovie.genres,
+        slug: savedMovie.slug,
+    }));
+
+    return resultMovies;
+}
+
+
 
 }

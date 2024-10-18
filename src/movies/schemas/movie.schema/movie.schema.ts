@@ -17,6 +17,9 @@ export class Movie {
   @Prop()
   description?: string;
 
+  @Prop({ required: true, unique: true })
+  slug: string; 
+
   @Prop([String])
   genres: string[];
 }
