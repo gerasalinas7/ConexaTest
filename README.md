@@ -120,7 +120,7 @@ Para usar la API, primero debes registrar un usuario e iniciar sesión para obte
 
 ---
 
-### Obtener Película por ID
+### Obtener Película por SLUG
 
 **Endpoint**: `/movies/:slug`  
 **Método**: `GET`  
@@ -171,7 +171,7 @@ Para usar la API, primero debes registrar un usuario e iniciar sesión para obte
 
 **Endpoint**: `/movies/:slug`  
 **Método**: `DELETE`  
-**Descripción**: Elimina una película por su ID.  
+**Descripción**: Elimina una película por su Slug.  
 **Autorización**: Requiere rol de "Admin".
 
 ---
