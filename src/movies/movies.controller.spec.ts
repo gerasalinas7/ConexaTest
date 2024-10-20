@@ -49,6 +49,7 @@ describe('MoviesController', () => {
         {
           provide: RolesGuard,
           useValue: {}, 
+        }
       ],
     }).compile();
 
