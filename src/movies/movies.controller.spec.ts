@@ -1,10 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
+import { JwtService } from '@nestjs/jwt'; 
+import { RolesGuard } from '../auth/roles/roles.guard'; 
+import { NotFoundException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { NotFoundException } from '@nestjs/common';
 
+// Mock data and services
 const mockMovie = {
   title: 'Star Wars: A New Hope',
   director: 'George Lucas',
@@ -23,6 +26,11 @@ const mockMoviesService = {
   syncStarWarsMovies: jest.fn(),
 };
 
+const mockJwtService = {
+  sign: jest.fn(),
+  verify: jest.fn(),
+};
+
 describe('MoviesController', () => {
   let controller: MoviesController;
 
@@ -34,6 +42,14 @@ describe('MoviesController', () => {
           provide: MoviesService,
           useValue: mockMoviesService,
         },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
+        {
+          provide: RolesGuard,
+          useValue: {}, 
+        }
       ],
     }).compile();
 
@@ -118,16 +134,17 @@ describe('MoviesController', () => {
 
     it('should throw a NotFoundException if movie not found', async () => {
       mockMoviesService.remove.mockRejectedValue(new NotFoundException());
-        await expect(controller.remove(mockMovie.slug)).rejects.toThrow(NotFoundException);
-      });
-    });
-  
-    describe('syncStarWarsMovies', () => {
-      it('should sync Star Wars movies successfully', async () => {
-        mockMoviesService.syncStarWarsMovies.mockResolvedValue([mockMovie]);
-  
-        const movies = await controller.syncStarWarsMovies();
-        expect(movies).toEqual([mockMovie]);
-      });
+
+      await expect(controller.remove(mockMovie.slug)).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('syncStarWarsMovies', () => {
+    it('should sync Star Wars movies successfully', async () => {
+      mockMoviesService.syncStarWarsMovies.mockResolvedValue([mockMovie]);
+
+      const movies = await controller.syncStarWarsMovies();
+      expect(movies).toEqual([mockMovie]);
+    });
+  });
+});

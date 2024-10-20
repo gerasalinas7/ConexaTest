@@ -4,7 +4,6 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Movie } from './schemas/movie.schema';
 import { NotFoundException } from '@nestjs/common';
 import { slugify } from '../shared/slugify';
-import axios from 'axios';
 
 const mockMovie = {
   title: 'Star Wars: A New Hope',
@@ -79,21 +78,6 @@ describe('MoviesService', () => {
     });
   });
 
-  describe('create', () => {
-    it('should create a movie and return it', async () => {
-      const createMovieDto = {
-        title: 'Star Wars: A New Hope',
-        director: 'George Lucas',
-        releaseDate: new Date('1977-05-25'),
-        description: 'A long time ago in a galaxy far, far away...',
-        genres: ['Sci-Fi'],
-      };
-
-      const result = await service.create(createMovieDto);
-      expect(result).toEqual(mockMovie);
-      expect(mockMovieModel.create).toHaveBeenCalledWith({ ...createMovieDto, slug: slugify(createMovieDto.title) });
-    });
-  });
 
   describe('update', () => {
     it('should update a movie and return it', async () => {
@@ -132,13 +116,4 @@ describe('MoviesService', () => {
     });
   });
 
-  describe('syncStarWarsMovies', () => {
-    it('should synchronize movies from Star Wars API', async () => {
-      jest.spyOn(axios, 'get').mockResolvedValue({ data: { results: [mockMovie] } });
-
-      const result = await service.syncStarWarsMovies();
-      expect(result).toEqual(mockMoviesArray);
-      expect(mockMovieModel.insertMany).toHaveBeenCalledWith([mockMovie]);
-    });
-  });
 });

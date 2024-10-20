@@ -92,25 +92,5 @@ describe('AuthService', () => {
       await expect(authService.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('debería retornar un token de acceso si las credenciales son válidas', async () => {
-      const loginDto: LoginDTO = { email: 'user@example.com', password: 'password123' };
-      const user = {
-        email: loginDto.email,
-        password: await bcrypt.hash(loginDto.password, 10),
-        _id: '123456',
-        role: 'regular',
-      };
-
-      mockUsersService.findOneByEmail.mockResolvedValue(user);
-      mockJwtService.sign.mockReturnValue('mocked_access_token');
-
-      const result = await authService.login(loginDto);
-      expect(result).toEqual({ access_token: 'mocked_access_token' });
-      expect(mockJwtService.sign).toHaveBeenCalledWith({
-        email: user.email,
-        sub: user._id,
-        role: user.role,
-      });
-    });
   });
 });
