@@ -33,3 +33,32 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
+
+
+// import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+// import { Reflector } from '@nestjs/core';
+
+// @Injectable()
+// export class RolesGuard implements CanActivate {
+//   constructor(private reflector: Reflector) {}
+
+//   canActivate(context: ExecutionContext): boolean {
+//     const requiredRole = this.reflector.get<string>('role', context.getHandler());
+//     if (!requiredRole) {
+//       return true;
+//     }
+    
+//     const request = context.switchToHttp().getRequest();
+//     const user = request.user; // Accede al usuario directamente desde `req.user`
+
+//     if (!user) {
+//       throw new ForbiddenException('No user found');
+//     }
+
+//     if (user.role !== requiredRole) {
+//       throw new ForbiddenException('You do not have the required permissions');
+//     }
+
+//     return true;
+//   }
+// }

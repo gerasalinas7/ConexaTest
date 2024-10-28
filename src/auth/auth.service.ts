@@ -33,6 +33,13 @@ export class AuthService {
       role: validatedUser._doc.role 
     };
   
+    // const userObject = validatedUser.toObject();
+    // const payload = { 
+    //   email: userObject.email,  // Acceso directo a email
+    //   sub: userObject._id,      // Acceso directo al id
+    //   role: userObject.role,    // Acceso directo al rol
+    // };
+
     return {
       access_token: this.jwtService.sign(payload),
     };
